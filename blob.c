@@ -40,6 +40,7 @@
 #include "util.h"
 #include "upload-queue.h"
 #include "version.h"
+#include "log.h"
 #include <time.h>
 #include <stdbool.h>
 #include <stdlib.h>
