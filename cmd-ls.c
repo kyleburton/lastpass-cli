@@ -40,6 +40,7 @@
 #include "format.h"
 #include "kdf.h"
 #include "log.h"
+#include "blob.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -294,6 +295,7 @@ int cmd_ls(int argc, char **argv)
 	INIT_LIST_HEAD(&root->children);
 
 	/* '(none)' group -> search for any without group */
+    // NB: why do we ignore "(none)"?
 	if (group && !strcmp(group, "(none)"))
 		group = "";
 
@@ -302,11 +304,10 @@ int cmd_ls(int argc, char **argv)
 		num_accounts++;
 	}
 
-    LOG(LOG_DEBUG, "cmd_ls: testing: %d %d %d\n", 3, 2, 1);
-    LOG(LOG_DEBUG, "cmd_ls: looking at num_accounts=%d blob->share_head\n", num_accounts, &blob->share_head);
+    LOG_DEBUG("cmd_ls: looking at num_accounts=%d blob->share_head\n", num_accounts, &blob->share_head);
 	list_for_each_entry(share, &blob->share_head, list) {
 		num_accounts++;
-        LOG(LOG_DEBUG, "cmd_ls: found shared account num_accounts=%d\n",  num_accounts);
+        LOG_DEBUG("cmd_ls: found shared account num_accounts=%d\n",  num_accounts);
 	}
 
 	i=0;
@@ -329,8 +330,9 @@ int cmd_ls(int argc, char **argv)
 		account_set_url(account, "http://group", key);
 		account_array[i++] = account;
 
-        LOG(LOG_DEBUG, "cmd_ls: shared account: name=%s, group=%s, fullname=%s\n",  account->name, account->group, account->fullname);
+        LOG_DEBUG("cmd_ls: shared account: id=%s, name=%s, group=%s, fullname=%s\n",  account->id, account->name, account->group, account->fullname);
         // HERE: how do we get the tree from here what endpoint do we hit?
+
 	}
 	qsort(account_array, num_accounts, sizeof(struct account *),
 	      compare_account);
@@ -364,8 +366,14 @@ int cmd_ls(int argc, char **argv)
 
 		fullname = get_display_fullname(account);
 
-		if (print_tree)
+		if (print_tree) {
+            if (lpass_log_is_debug()) {
+                char* acct_str = account_to_string(account);
+                LOG_DEBUG("cmd_ls: insert_node(fullname=%s, account=%s)\n",  fullname, acct_str);
+                free(acct_str);
+            }
 			insert_node(root, fullname, account);
+        }
 		else {
 			struct buffer buf;
 

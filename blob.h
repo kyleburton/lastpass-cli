@@ -180,4 +180,13 @@ void buffer_append(struct buffer *buffer, void *bytes, size_t len);
 void buffer_append_char(struct buffer *buf, char c);
 void buffer_append_str(struct buffer *buf, char *str);
 
+// char* share_user_to_string(struct share_user *user);
+char* share_to_string(struct share *s);
+char* shares_to_string(struct list_head *s);
+// char* field_to_string(struct field *s);
+char* account_to_string(struct account *s);
+char* accounts_to_string(struct list_head *s);
+// char* app_to_string(struct app *s);
+char* blob_to_string(struct blob *s);
+
 #endif

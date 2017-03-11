@@ -601,6 +601,7 @@ struct blob *blob_parse(const unsigned char *blob, size_t len, const unsigned ch
 	INIT_LIST_HEAD(&parsed->share_head);
 
 	while (read_chunk(&blob_pos, &chunk)) {
+        LOG_DEBUG("read_chunk: chunk.name=%s\n", chunk.name);
 		if (!strcmp(chunk.name, "LPAV")) {
 			versionstr = xstrndup((char *) chunk.data, chunk.len);
 			parsed->version = strtoull(versionstr, NULL, 10);
@@ -664,7 +665,9 @@ struct blob *blob_parse(const unsigned char *blob, size_t len, const unsigned ch
 			}
 			if (!found)
 				attach_free(attach);
-		}
+		} else {
+            LOG_DEBUG("Fell through for chunk: %s\n", chunk.name);
+        }
 	}
 
 	if (!versionstr)
@@ -1263,3 +1266,86 @@ struct account *notes_collapse(struct account *acc)
 
 	return collapse;
 }
+
+/** document this */
+char* account_to_string(struct account *s) {
+    char *buff = NULL;
+
+    xasprintf(&buff, "account{id=%s; name=%s; group=%s; fullname=%s; url=%s; username=%s; password=%s; note=%s; pwprotect=%d; fav=%d; is_app=%d; attachpresent=%d}",
+            s->id,
+            s->name,
+            s->group,
+            s->fullname,
+            s->url,
+            s->username,
+            s->password,
+            s->note,
+            s->pwprotect,
+            s->fav,
+            s->is_app
+            );
+
+    return buff;
+
+}
+/**
+ * Create a human-readable string based summary of the accounts.  Callers MUST
+ * call free on the returned pointer.
+ *
+ */
+char* accounts_to_string(struct list_head *l)
+{
+    char *buff;
+    xasprintf(&buff, "<<accounts_to_string: implement this!: %p>>", (void*)&l);
+    return buff;
+}
+
+/**
+ * Create a human-readable string based summary of the shares.  Callers MUST
+ * call free on the returned pointer.
+ *
+ */
+char* shares_to_string(struct list_head *l)
+{
+    char *buff = NULL;
+    char *b2 = NULL;
+	struct share *share;
+    xasprintf(&buff, "SHARES");
+    list_for_each_entry(share, l, list) {
+        LOG_DEBUG("buff=%s\n", buff);
+        b2 = NULL;
+        xasprintf(&b2, "%s,share{id=%s; name=%s; readonly=%d; chunk=%zu/%s}",
+                buff,
+                share->id,
+                share->name,
+                share->readonly,
+                share->chunk_len,
+                share->chunk);
+        free(buff);
+        buff = b2;
+    }
+    // xasprintf(&buff, "<<shares_to_string: implement this!: %p>>", (void*)&l);
+    return buff;
+}
+
+/**
+ * Create a human-readable string based summary of the full blob.  Callers MUST
+ * call free on the returned pointer.
+ *
+ */
+char* blob_to_string(struct blob *s)
+{
+    char* accounts_str = accounts_to_string(&s->account_head);
+    char* shares_str = shares_to_string(&s->share_head);
+    char *blob_str = NULL;
+    xasprintf(&blob_str, "blob{version=%llu; local_version=%d; accounts=%s; shares=%s}",
+            s->version,
+            s->local_version,
+            accounts_str,
+            shares_str
+            );
+    free(accounts_str);
+    free(shares_str);
+    return blob_str;
+}
+

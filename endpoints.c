@@ -69,7 +69,7 @@ struct blob *lastpass_get_blob(const struct session *session, const unsigned cha
 	size_t len;
 
 	_cleanup_free_ char *blob = http_post_lastpass("getaccts.php", session, &len, "mobile", "1", "requestsrc", "cli", "hasplugin", LASTPASS_CLI_VERSION, NULL);
-    LOG(LOG_DEBUG, "lastpass_get_blob: getaccts.php returned: '%s'\n", blob);
+    LOG_DEBUG("lastpass_get_blob: http_post_lastpass: getaccts.php returned: '%s' len=%llu\n", blob, len);
 	if (!blob || !len)
 		return NULL;
 	config_write_encrypted_buffer("blob", blob, len, key);

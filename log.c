@@ -37,6 +37,7 @@
 #include "log.h"
 #include "config.h"
 #include <fcntl.h>
+#include <string.h>
 #include <sys/time.h>
 
 #define TIME_FMT "%lld.%06lld"
@@ -58,6 +59,15 @@ int lpass_log_level()
 	level = strtoul(log_level_str, NULL, 10);
     initialized = 1;
 	return (enum log_level) level;
+}
+
+const char* lpass_log_level_str() {
+    if (lpass_log_is_verbose()) return "VERBOSE";
+    if (lpass_log_is_debug())   return "DEBUG";
+    if (lpass_log_is_info())    return "INFO";
+    if (lpass_log_is_warning()) return "WARNING";
+    if (lpass_log_is_error())   return "ERROR";
+    return "NONE";
 }
 
 int lpass_log_is_none() {
@@ -84,6 +94,16 @@ int lpass_log_is_verbose() {
     return lpass_log_level() >= LOG_LEVEL_VERBOSE;
 }
 
+const char* lpass_short_fname(const char* fname)
+{
+    const char* pos = strrchr(fname, '/');
+    if (!pos) {
+        return fname;
+    }
+
+    return pos+1;
+}
+
 void lpass_log(enum log_level level, char *fmt, ...)
 {
 	struct timeval tv;
@@ -101,11 +121,18 @@ void lpass_log(enum log_level level, char *fmt, ...)
 		return;
 
 	gettimeofday(&tv, &tz);
-	fprintf(fp, "<%d> [" TIME_FMT "] ", level, TIME_ARGS(&tv));
+	fprintf(fp, "<%7s> [" TIME_FMT "] ", lpass_log_level_str(), TIME_ARGS(&tv));
 	va_start(ap, fmt);
 	vfprintf(fp, fmt, ap);
 	va_end(ap);
 	fflush(fp);
+
+    if (lpass_log_is_verbose()) {
+        fprintf(stderr, "<%7s> [" TIME_FMT "] ", lpass_log_level_str(), TIME_ARGS(&tv));
+        va_start(ap, fmt);
+        vfprintf(stderr, fmt, ap);
+        va_end(ap);
+    }
 }
 
 FILE *lpass_log_open()

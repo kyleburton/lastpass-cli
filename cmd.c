@@ -100,11 +100,18 @@ void init_all(enum blobsync sync, unsigned char key[KDF_HASH_LEN], struct sessio
 		die("Could not find session. Perhaps you need to login with `%s login`.", ARGV[0]);
 
 	if (blob) {
-        LOG0(LOG_DEBUG, "init_all: have blob, calling blob_load\n");
+        LOG_DEBUG0("init_all: have blob, calling blob_load\n");
 		*blob = blob_load(sync, *session, key);
 		if (!*blob)
 			die("Unable to fetch blob. Either your session is invalid and you need to login with `%s login`, you need to synchronize, your blob is empty, or there is something wrong with your internet connection.", ARGV[0]);
 	}
+
+    if (lpass_log_is_verbose()) {
+        char* blob_str = blob_to_string(*blob);
+        LOG_VERBOSE("init_all: blob=%s\n", blob_str);
+        free(blob_str);
+
+    }
 }
 
 /*
