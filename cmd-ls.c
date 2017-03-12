@@ -26,7 +26,7 @@
  * You must obey the GNU General Public License in all respects
  * for all of the code used other than OpenSSL.  If you modify
  * file(s) with this exception, you may extend this exception to your
- * version of the file(s), but you are not obligated to do so.  If you
+ * version of the file(s), but you are not obligated to do so.	If you
  * do not wish to do so, delete this exception statement from your
  * version.  If you delete this exception statement from all source
  * files in the program, then also delete it here.
@@ -67,7 +67,7 @@ struct path_component
 
 /*
  * Tokenize path and add each component to the components list.
- * For group names, the path separator is a backslash.  The path
+ * For group names, the path separator is a backslash.	The path
  * string is modified in place and the component list stores
  * pointers to the modified string.
  */
@@ -84,8 +84,8 @@ static void parse_path(char *path, struct list_head *components)
 }
 
 static void __insert_node(struct node *head,
-			  struct list_head *components,
-			  struct account *account)
+				struct list_head *components,
+				struct account *account)
 {
 	struct path_component *pc;
 	struct node *child, *tmp;
@@ -145,10 +145,10 @@ static void insert_node(struct node *head, const char *path, struct account *acc
 	/*
 	 * We are left with one of:
 	 *
-	 *     (none)/
-	 *     groupname/
-	 *     Shared-folder/
-	 *     Shared-folder/groupname/
+	 *		 (none)/
+	 *		 groupname/
+	 *		 Shared-folder/
+	 *		 Shared-folder/groupname/
 	 *
 	 * If there are embedded backslashes, these are treated as folder
 	 * names by parse_path().
@@ -192,7 +192,7 @@ static void print_node(struct node *head, char *fmt_str, int level)
 	list_for_each_entry(node, &head->children, list) {
 		if (node->name) {
 			for (int i = 0; i < level; ++i)
-				printf("    ");
+				printf("		");
 			if (node->account) {
 				struct buffer buf;
 
@@ -275,10 +275,12 @@ int cmd_ls(int argc, char **argv)
 		}
 	}
 
+
 	switch (argc - optind) {
 		case 0:
 			break;
 		case 1:
+			LOG_DEBUG("cmd_ls: one argument, using as group=%s\n", argv[optind]);
 			group = argv[optind];
 			break;
 		default:
@@ -287,15 +289,22 @@ int cmd_ls(int argc, char **argv)
 
 	terminal_set_color_mode(cmode);
 	print_tree = cmode == COLOR_MODE_ALWAYS ||
-		     (cmode == COLOR_MODE_AUTO && isatty(fileno(stdout)));
+				 (cmode == COLOR_MODE_AUTO && isatty(fileno(stdout)));
 
+	LOG_DEBUG("cmd_ls: long_listing=%s; show_mtime=%s; cmode=%d; sync=%d; fmt_str=%s; print_tree=%s\n",
+			lpass_log_bool_to_string(long_listing),
+			lpass_log_bool_to_string(show_mtime),
+			cmode,
+			sync,
+			fmt_str,
+			lpass_log_bool_to_string(print_tree));
 
 	init_all(sync, key, &session, &blob);
 	root = new0(struct node, 1);
 	INIT_LIST_HEAD(&root->children);
 
 	/* '(none)' group -> search for any without group */
-    // NB: why do we ignore "(none)"?
+		// NB: why do we ignore "(none)"?
 	if (group && !strcmp(group, "(none)"))
 		group = "";
 
@@ -304,10 +313,10 @@ int cmd_ls(int argc, char **argv)
 		num_accounts++;
 	}
 
-    LOG_DEBUG("cmd_ls: looking at num_accounts=%d blob->share_head\n", num_accounts, &blob->share_head);
+		LOG_DEBUG("cmd_ls: looking at num_accounts=%d blob->share_head\n", num_accounts, &blob->share_head);
 	list_for_each_entry(share, &blob->share_head, list) {
 		num_accounts++;
-        LOG_DEBUG("cmd_ls: found shared account num_accounts=%d\n",  num_accounts);
+				LOG_DEBUG("cmd_ls: found shared account num_accounts=%d\n",  num_accounts);
 	}
 
 	i=0;
@@ -330,26 +339,28 @@ int cmd_ls(int argc, char **argv)
 		account_set_url(account, "http://group", key);
 		account_array[i++] = account;
 
-        LOG_DEBUG("cmd_ls: shared account: id=%s, name=%s, group=%s, fullname=%s\n",  account->id, account->name, account->group, account->fullname);
-        // HERE: how do we get the tree from here what endpoint do we hit?
+		LOG_DEBUG("cmd_ls: shared account: id=%s, name=%s, group=%s, fullname=%s\n",	account->id, account->name, account->group, account->fullname);
 
 	}
 	qsort(account_array, num_accounts, sizeof(struct account *),
-	      compare_account);
+				compare_account);
 
 	if (!fmt_str) {
 		xasprintf(&fmt_str,
-			  TERMINAL_FG_CYAN "%s"
-			  TERMINAL_FG_GREEN TERMINAL_BOLD "%%a%c"
-			  TERMINAL_NO_BOLD
-			  " [id: %%ai]"
-			  "%s" TERMINAL_RESET,
-			  (long_listing) ?
-				((show_mtime) ?  "%am " : "%aU ") : "",
-			  (print_tree) ? 'n' : 'N',
-			  (long_listing) ? " [username: %au]" : "");
+				TERMINAL_FG_CYAN "%s"
+				TERMINAL_FG_GREEN TERMINAL_BOLD "%%a%c"
+				TERMINAL_NO_BOLD
+				" [id: %%ai]"
+				"%s" TERMINAL_RESET,
+				(long_listing) ?
+				((show_mtime) ? "%am " : "%aU ") : "",
+				(print_tree) ? 'n' : 'N',
+				(long_listing) ? " [username: %au]" : "");
 	}
 
+
+	LOG_DEBUG("building the tree: num_accounts=%d\n", num_accounts);
+	int num_inserted = 0;
 	for (i=0; i < num_accounts; i++)
 	{
 		struct account *account = account_array[i];
@@ -367,23 +378,25 @@ int cmd_ls(int argc, char **argv)
 		fullname = get_display_fullname(account);
 
 		if (print_tree) {
-            if (lpass_log_is_debug()) {
-                char* acct_str = account_to_string(account);
-                LOG_DEBUG("cmd_ls: insert_node(fullname=%s, account=%s)\n",  fullname, acct_str);
-                free(acct_str);
-            }
+			num_inserted++;
 			insert_node(root, fullname, account);
-        }
+		}
 		else {
 			struct buffer buf;
 
 			memset(&buf, 0, sizeof(buf));
 			format_account(&buf, fmt_str, account);
+			LOG_DEBUG("formatted account, calling terminal_printf: %s\n", buf.bytes);
 			terminal_printf("%s\n", buf.bytes);
 			free(buf.bytes);
 		}
 		free(fullname);
 	}
+
+	LOG_DEBUG0("done building tree, print_tree=%d\n");
+	LOG_DEBUG("done building tree, print_tree=%d\n", print_tree);
+	// LOG_DEBUG("done building the tree: num_accounts=%d; num_inserted=%d\n", num_accounts, num_inserted);
+
 	if (print_tree)
 		print_node(root, fmt_str, 0);
 

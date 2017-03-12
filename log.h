@@ -30,9 +30,10 @@ const char* lpass_log_level_str();
 void lpass_log(enum log_level level, char *fmt, ...);
 FILE *lpass_log_open();
 const char* lpass_short_fname(const char* fname);
+const char* lpass_log_bool_to_string(int b);
 
-#define LOG0(level, fmt)      (lpass_log(level, "%s:%d " fmt, lpass_short_fname(__FILE__), __LINE__))
-#define LOG(level, fmt, ...)  (lpass_log(level, "%s:%d " fmt, lpass_short_fname(__FILE__), __LINE__, __VA_ARGS__))
+#define LOG0(level, fmt)      (lpass_log(level, "%s:%s:%d " fmt, lpass_short_fname(__FILE__), __func__, __LINE__))
+#define LOG(level, fmt, ...)  (lpass_log(level, "%s:%s:%d " fmt, lpass_short_fname(__FILE__), __func__, __LINE__, __VA_ARGS__))
 
 #define LOG_VERBOSE0(fmt)      if (lpass_log_is_verbose()) LOG0(LOG_LEVEL_VERBOSE, fmt)
 #define LOG_VERBOSE(fmt, ...)  if (lpass_log_is_verbose()) LOG(LOG_LEVEL_VERBOSE, fmt, __VA_ARGS__)

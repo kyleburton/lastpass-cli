@@ -601,7 +601,7 @@ struct blob *blob_parse(const unsigned char *blob, size_t len, const unsigned ch
 	INIT_LIST_HEAD(&parsed->share_head);
 
 	while (read_chunk(&blob_pos, &chunk)) {
-        LOG_DEBUG("read_chunk: chunk.name=%s\n", chunk.name);
+        LOG_VERBOSE("read_chunk: chunk.name=%s\n", chunk.name);
 		if (!strcmp(chunk.name, "LPAV")) {
 			versionstr = xstrndup((char *) chunk.data, chunk.len);
 			parsed->version = strtoull(versionstr, NULL, 10);
@@ -666,7 +666,7 @@ struct blob *blob_parse(const unsigned char *blob, size_t len, const unsigned ch
 			if (!found)
 				attach_free(attach);
 		} else {
-            LOG_DEBUG("Fell through for chunk: %s\n", chunk.name);
+            LOG_VERBOSE("Fell through for chunk: %s\n", chunk.name);
         }
 	}
 
@@ -1312,7 +1312,7 @@ char* shares_to_string(struct list_head *l)
 	struct share *share;
     xasprintf(&buff, "SHARES");
     list_for_each_entry(share, l, list) {
-        LOG_DEBUG("buff=%s\n", buff);
+        LOG_VERBOSE("buff=%s\n", buff);
         b2 = NULL;
         xasprintf(&b2, "%s,share{id=%s; name=%s; readonly=%d; chunk=%zu/%s}",
                 buff,
