@@ -78,6 +78,11 @@ static void print_csv_cell(const char *cell, bool is_last)
 		printf(",");
 }
 
+const char* empty_if_null_str(const char* s)
+{
+  return s == NULL ? "" : s;
+}
+
 int cmd_export(int argc, char **argv)
 {
 	static struct option long_options[] = {
@@ -122,7 +127,7 @@ int cmd_export(int argc, char **argv)
 		}
 	}
 
-	printf("url,username,password,extra,name,grouping,fav\r\n");
+	printf("id,name,group,groupname,fullname,url,username,password,note,last_touch,last_modified_gmt,fav,attachpresent\r\n");
 
 	list_for_each_entry(account, &blob->account_head, list) {
 
@@ -145,13 +150,19 @@ int cmd_export(int argc, char **argv)
 		}
 
 		lastpass_log_access(sync, session, key, account);
-		print_csv_cell(account->url, false);
-		print_csv_cell(account->username, false);
-		print_csv_cell(account->password, false);
-		print_csv_cell(account->note, false);
-		print_csv_cell(account->name, false);
-		print_csv_cell(groupname, false);
-		print_csv_cell(bool_str(account->fav), true);
+		print_csv_cell(empty_if_null_str(account->id), false);
+		print_csv_cell(empty_if_null_str(account->name), false);
+		print_csv_cell(empty_if_null_str(account->group), false);
+		print_csv_cell(empty_if_null_str(groupname), false);
+		print_csv_cell(empty_if_null_str(account->fullname), false);
+		print_csv_cell(empty_if_null_str(account->url), false);
+		print_csv_cell(empty_if_null_str(account->username), false);
+		print_csv_cell(empty_if_null_str(account->password), false);
+		print_csv_cell(empty_if_null_str(account->note), false);
+		print_csv_cell(empty_if_null_str(account->last_touch), false);
+		print_csv_cell(empty_if_null_str(account->last_modified_gmt), false);
+		print_csv_cell(bool_str(account->fav), false);
+		print_csv_cell(bool_str(account->attachpresent), true);
 	}
 
 	session_free(session);
